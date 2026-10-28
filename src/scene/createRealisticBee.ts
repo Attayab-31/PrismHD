@@ -191,7 +191,7 @@ export function createRealisticBee(): RealisticBee {
     { len: 0.32, r1: 0.40, r2: 0.10, mat: chitinMaterial, x: -1.26, tilt: -0.22 },
   ];
 
-  segmentSpecs.forEach((spec, idx) => {
+  segmentSpecs.forEach((spec) => {
     // Dorsal & lateral tergite shell
     const segGeom = new THREE.CylinderGeometry(spec.r2, spec.r1, spec.len, 24);
     const segMesh = new THREE.Mesh(segGeom, spec.mat);
@@ -384,7 +384,6 @@ export function createRealisticBee(): RealisticBee {
 
   const setBreathing = (timeSec: number) => {
     // 3.5 Hz natural respiratory expansion of abdomen segments
-    const breath = 1.0 + Math.sin(timeSec * 3.5 * Math.PI * 2) * 0.024;
     abdomenSegments.forEach((seg, i) => {
       seg.scale.y = 0.94 * (1.0 + Math.sin(timeSec * 3.5 * Math.PI * 2 + i * 0.3) * 0.028);
       seg.scale.z = 0.88 * (1.0 + Math.sin(timeSec * 3.5 * Math.PI * 2 + i * 0.3) * 0.028);
