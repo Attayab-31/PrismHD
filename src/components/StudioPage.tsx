@@ -369,7 +369,9 @@ export function StudioPage({ onBack }: StudioPageProps) {
                       style={{ left: `${wipePosition}%` }}
                       aria-hidden="true"
                     >
-                      <span>↔</span>
+                      <svg className="wipe-handle-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="m8.5 9-3 3 3 3M15.5 9l3 3-3 3M5.5 12h13" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
                     </div>
                     <label className="sr-only" htmlFor="studio-wipe-slider">
                       Compare source and enhanced

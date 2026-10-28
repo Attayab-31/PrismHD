@@ -45,7 +45,7 @@ export function createStoryScene(canvas: HTMLCanvasElement): StoryScene {
   scene.add(rimLight);
 
   const stage = new THREE.Group();
-  stage.position.set(1.05, -0.08, 0);
+  stage.position.set(window.innerWidth >= 1200 ? 2.0 : 1.38, -0.08, 0);
   scene.add(stage);
 
   // A suspended field of image fragments gives the scroll reveal a tangible, physical moment.
@@ -168,7 +168,8 @@ export function createStoryScene(canvas: HTMLCanvasElement): StoryScene {
     stage.rotation.y = -0.105 + reveal * 0.085;
     stage.rotation.x = 0.018 + reveal * -0.018;
     stage.position.y = (compact ? -1.55 : -0.08) + Math.sin(progress * Math.PI) * 0.08;
-    stage.position.x = (compact ? 0 : 1.05) - reveal * (compact ? 0 : 0.18);
+    const desktopFrameX = window.innerWidth >= 1200 ? 2.0 : 1.38;
+    stage.position.x = (compact ? 0 : desktopFrameX) - reveal * (compact ? 0 : 0.18);
     const scale = compact ? Math.min(0.86, Math.max(0.62, window.innerWidth / 820)) : 1;
     const zoom = 1 + reveal * 0.075;
     stage.scale.setScalar(scale * zoom);
