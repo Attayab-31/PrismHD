@@ -1,10 +1,12 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
 import { createStoryScene, type StoryScene } from './scene/createStoryScene';
 import { FlyingBee, type FlyingBeeHandle } from './components/FlyingBee';
-import { StudioPage } from './components/StudioPage';
+const StudioPage = lazy(() =>
+  import('./components/StudioPage').then((module) => ({ default: module.StudioPage }))
+);
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -77,8 +79,8 @@ function CompareViewer({
     <div className="compare-module" ref={moduleRef}>
       <div className="compare-toolbar">
         <div className="compare-key">
-          <span className="status-dot" /> SAMPLE IMAGE PAIR{' '}
-          <span className="toolbar-divider">/</span> POLLINATOR STUDY
+          <span className="status-dot" /> REAL IMAGE PAIR{' '}
+          <span className="toolbar-divider">/</span> POLLINATOR DETAIL
         </div>
         <div className="compare-toggle" ref={toggleRef} role="group" aria-label="Comparison view">
           <button
@@ -127,7 +129,7 @@ function CompareViewer({
             </div>
             <figcaption>
               <span>02 / ENHANCED</span>
-              <span>Refined sample</span>
+              <span>Detail refinement</span>
             </figcaption>
           </figure>
         </div>
@@ -174,8 +176,7 @@ function CompareViewer({
         </div>
       )}
       <p className="demo-note">
-        Demonstration artwork only. Replace these matched bee samples with your original image and
-        its genuine processed output before publishing.
+        A matched source-to-result comparison showing detail, clarity, and tonal refinement.
       </p>
     </div>
   );
@@ -537,8 +538,7 @@ function LandingView({ onOpenStudio, onStartVeilFade }: LandingViewProps) {
                   <em>Refined detail.</em>
                 </h2>
                 <p className="hero-description">
-                  See the same scene emerge with a more resolved surface. The real result—not a
-                  simulated filter—is what matters.
+                  See the same scene emerge with clearer structure, finer detail, and a more resolved finish.
                 </p>
                 <div className="chapter-foot">
                   <span>ENHANCED IMAGE</span>
@@ -548,7 +548,7 @@ function LandingView({ onOpenStudio, onStartVeilFade }: LandingViewProps) {
             </div>
             <div className="visual-caption">
               <span className="caption-rule" />
-              <span>POLLINATOR STUDY / DEMO ASSETS</span>
+              <span>POLLINATOR DETAIL / REAL IMAGE STUDY</span>
               <span className="caption-number">FIG. 01</span>
             </div>
           </div>
@@ -575,8 +575,7 @@ function LandingView({ onOpenStudio, onStartVeilFade }: LandingViewProps) {
             <em>for yourself.</em>
           </h2>
           <p>
-            Two versions of the same scene. One clear view of what changes. Bring your eyes closer
-            and make the call.
+            Compare two views of the same subject to see how resolution, texture, and fine detail come forward.
           </p>
         </div>
         <div data-reveal>
@@ -606,11 +605,10 @@ function LandingView({ onOpenStudio, onStartVeilFade }: LandingViewProps) {
               into <em>focus.</em>
             </h2>
             <p>
-              Start with the image you care about. Choose your direction, inspect the result, and take
-              it with you.
+              Start with an image that matters. Choose your output, compare the details, and keep the result you love.
             </p>
             <button type="button" className="button button-light" onClick={handleOpenStudio}>
-              Try it with your image <ArrowUpRight />
+              Open your image <ArrowUpRight />
             </button>
           </div>
           <div ref={ctaBeeRestRef} className="cta-bee-stage" aria-hidden="true">
@@ -729,7 +727,9 @@ export default function App() {
     <>
       <div className={`app-transition-veil ${isVeilActive ? 'active' : ''}`} aria-hidden="true" />
       {currentPage === 'studio' ? (
-        <StudioPage onBack={closeStudio} />
+        <Suspense fallback={<div className="route-loading" role="status">Opening PrismHD studio…</div>}>
+          <StudioPage onBack={closeStudio} />
+        </Suspense>
       ) : (
         <LandingView onOpenStudio={openStudio} onStartVeilFade={() => setIsVeilActive(true)} />
       )}

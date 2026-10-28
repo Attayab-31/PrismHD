@@ -44,12 +44,16 @@ export function StudioPage({ onBack }: StudioPageProps) {
   const [format, setFormat] = useState<UpscaleOptions['format']>('png');
   const [quality, setQuality] = useState<UpscaleOptions['quality']>('balanced');
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState('Choose an image to prepare your enhancement settings.');
+  const endpointConfigured = Boolean(import.meta.env.VITE_UPSCALER_ENDPOINT?.trim());
+  const [message, setMessage] = useState(
+    endpointConfigured
+      ? 'Choose an image to prepare your enhancement settings.'
+      : 'Choose an image to preview settings and prepare your workflow.'
+  );
   const [result, setResult] = useState('');
   const [resultDimensions, setResultDimensions] = useState<{ width: number; height: number } | null>(null);
   const [wipePosition, setWipePosition] = useState(50);
   const [viewMode, setViewMode] = useState<'wipe' | 'side' | 'single'>('wipe');
-  const [canSimulate, setCanSimulate] = useState(false);
 
   // Revoke object URLs on cleanup
   useEffect(() => {
@@ -69,17 +73,31 @@ export function StudioPage({ onBack }: StudioPageProps) {
     img.onload = () => {
       setDimensions({ width: img.naturalWidth, height: img.naturalHeight });
     };
+    img.onerror = () => setMessage('This image could not be decoded. Try a JPG, PNG, WebP, or AVIF file.');
     img.src = preview;
   }, [preview]);
 
+  useEffect(() => {
+    if (!result) {
+      setResultDimensions(null);
+      return;
+    }
+    const img = new Image();
+    img.onload = () => {
+      setResultDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+    };
+    img.src = result;
+  }, [result]);
+
   const acceptFile = (selected?: File) => {
     if (!selected) return;
-    if (!selected.type.startsWith('image/')) {
-      setMessage('Please select a supported image file.');
+    const supportedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
+    if (!supportedTypes.includes(selected.type)) {
+      setMessage('Please choose a JPG, PNG, WebP, or AVIF image.');
       return;
     }
     if (selected.size > 20 * 1024 * 1024) {
-      setMessage('This starter accepts files up to 20 MB. Adjust this limit to match your backend.');
+      setMessage('Please choose an image smaller than 20 MB.');
       return;
     }
     if (preview.startsWith('blob:')) URL.revokeObjectURL(preview);
@@ -90,8 +108,11 @@ export function StudioPage({ onBack }: StudioPageProps) {
     setPreview(objectUrl);
     setResult('');
     setResultDimensions(null);
-    setCanSimulate(false);
-    setMessage(`${selected.name} is ready. Select output settings and click Enhance image.`);
+    setMessage(
+      endpointConfigured
+        ? `${selected.name} is ready. Select output settings and click Enhance image.`
+        : `${selected.name} is ready. Enhancement will become available when processing is connected for this deployment.`
+    );
   };
 
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -108,13 +129,13 @@ export function StudioPage({ onBack }: StudioPageProps) {
 
   const loadSampleImage = async () => {
     try {
-      setMessage('Loading sample pollinator study…');
+      setMessage('Opening the pollinator image…');
       const res = await fetch('/images/sample-before.jpg');
       const blob = await res.blob();
       const sampleFile = new File([blob], 'sample-pollinator-study.jpg', { type: 'image/jpeg' });
       acceptFile(sampleFile);
     } catch {
-      setMessage('Unable to load sample asset. Please choose a local image.');
+      setMessage('The reference image could not be opened. Please choose a local image.');
     }
   };
 
@@ -126,49 +147,12 @@ export function StudioPage({ onBack }: StudioPageProps) {
     setDimensions(null);
     setResult('');
     setResultDimensions(null);
-    setCanSimulate(false);
-    setMessage('Choose an image to prepare your enhancement settings.');
+    setMessage(
+      endpointConfigured
+        ? 'Choose an image to prepare your enhancement settings.'
+        : 'Choose an image to preview settings and prepare your workflow.'
+    );
     if (inputRef.current) inputRef.current.value = '';
-  };
-
-  // Client-side simulation fallback when backend endpoint is not configured
-  const generateSimulatedOutput = async (sourceFile: File, scaleFactor: number): Promise<string> => {
-    // If it's the bee sample, use high-res sample-after.png
-    if (sourceFile.name.includes('pollinator') || sourceFile.name.includes('sample-before')) {
-      return '/images/sample-after.png';
-    }
-
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const targetW = img.naturalWidth * scaleFactor;
-        const targetH = img.naturalHeight * scaleFactor;
-        canvas.width = targetW;
-        canvas.height = targetH;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(preview);
-          return;
-        }
-
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, 0, 0, targetW, targetH);
-
-        const mime = format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
-        const q = quality === 'high' ? 0.95 : quality === 'small' ? 0.75 : 0.88;
-
-        canvas.toBlob((blob) => {
-          if (blob) {
-            resolve(URL.createObjectURL(blob));
-          } else {
-            resolve(preview);
-          }
-        }, mime, q);
-      };
-      img.src = preview;
-    });
   };
 
   const runEnhancement = async () => {
@@ -179,7 +163,7 @@ export function StudioPage({ onBack }: StudioPageProps) {
     }
 
     setBusy(true);
-    setMessage('Sending the image to the enhancement pipeline…');
+    setMessage('Preparing your enhancement…');
     setResult('');
     setResultDimensions(null);
 
@@ -193,30 +177,37 @@ export function StudioPage({ onBack }: StudioPageProps) {
         if (dimensions) {
           setResultDimensions({ width: dimensions.width * scaleNum, height: dimensions.height * scaleNum });
         }
-        setMessage('The configured API returned the enhanced output. Inspect it below.');
+        setMessage('Enhancement complete. Compare your result with the original below.');
       } catch (error) {
-        setMessage(error instanceof Error ? error.message : 'Enhancement failed. Check your API configuration.');
-        setCanSimulate(true);
+        setMessage(error instanceof Error ? error.message : 'The enhancement could not be completed. Please review your image and try again.');
       } finally {
         setBusy(false);
       }
     } else {
-      // Friendly simulation demo for starter environment without backend endpoint
-      setMessage('Processing preview through the starter demonstration engine…');
-      setTimeout(async () => {
-        try {
-          const simUrl = await generateSimulatedOutput(file, scaleNum);
-          setResult(simUrl);
-          if (dimensions) {
-            setResultDimensions({ width: dimensions.width * scaleNum, height: dimensions.height * scaleNum });
-          }
-          setMessage(`Simulated ${scale}× enhancement complete. Connect VITE_UPSCALER_ENDPOINT in .env for your private API.`);
-        } catch {
-          setMessage('Simulation failed. Check file format.');
-        } finally {
-          setBusy(false);
-        }
-      }, 750);
+      setBusy(false);
+      setMessage('Enhancement is currently paused for this website deployment. Your source image has not been changed.');
+    }
+  };
+
+  const downloadResult = async () => {
+    try {
+      let downloadUrl = result;
+      let revoke = false;
+      if (!result.startsWith('blob:')) {
+        const response = await fetch(result);
+        if (!response.ok) throw new Error('The result file could not be downloaded.');
+        downloadUrl = URL.createObjectURL(await response.blob());
+        revoke = true;
+      }
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `prismhd-${scale}x.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      if (revoke) window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1_000);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'Download failed. Please try again.');
     }
   };
 
@@ -266,8 +257,7 @@ export function StudioPage({ onBack }: StudioPageProps) {
             <em>your direction.</em>
           </h2>
           <p>
-            A focused workspace for preparing an image, choosing an output, and sending it through
-            your enhancement pipeline.
+            A focused workspace for preparing an image, choosing an output, and reviewing the result before you download it.
           </p>
         </div>
 
@@ -301,7 +291,7 @@ export function StudioPage({ onBack }: StudioPageProps) {
                   <span className="upload-cross">＋</span>
                   <strong>Bring an image into focus.</strong>
                   <span>Drag an image here, or browse your files.</span>
-                  <small>Common image formats · up to 20 MB in this starter</small>
+                  <small>JPG, PNG, WebP or AVIF · up to 20 MB</small>
                   <div className="upload-actions">
                     <button
                       type="button"
@@ -315,14 +305,14 @@ export function StudioPage({ onBack }: StudioPageProps) {
                       className="sample-trigger-btn"
                       onClick={loadSampleImage}
                     >
-                      ＋ Load sample pollinator study
+                      ＋ Try with a featured image
                     </button>
                   </div>
                 </div>
                 <input
                   ref={inputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/avif"
                   onChange={onFileChange}
                   hidden
                 />
@@ -440,13 +430,13 @@ export function StudioPage({ onBack }: StudioPageProps) {
                 )}
 
                 <div className="result-action-bar">
-                  <a
-                    href={result}
-                    download={`prismhd-enhanced-${scale}x.${format}`}
+                  <button
+                    type="button"
                     className="button button-primary download-btn"
+                    onClick={downloadResult}
                   >
                     Download {scale}× enhanced image <ArrowUpRight />
-                  </a>
+                  </button>
                   <button
                     type="button"
                     className="button-ghost"
@@ -491,7 +481,7 @@ export function StudioPage({ onBack }: StudioPageProps) {
                 <input
                   ref={inputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png,image/webp,image/avif"
                   onChange={onFileChange}
                   hidden
                 />
@@ -504,7 +494,11 @@ export function StudioPage({ onBack }: StudioPageProps) {
                   <span className="file-name" title={file.name}>
                     {file.name}
                   </span>
-                  <span className="file-size">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                  <span className="file-size">
+                    {file.size < 1024 * 1024
+                      ? `${Math.max(1, Math.round(file.size / 1024))} KB`
+                      : `${(file.size / 1024 / 1024).toFixed(2)} MB`}
+                  </span>
                 </div>
                 {dimensions && (
                   <div className="spec-row">
@@ -579,7 +573,7 @@ export function StudioPage({ onBack }: StudioPageProps) {
               type="button"
               className="button button-primary enhance-button"
               onClick={runEnhancement}
-              disabled={busy}
+              disabled={busy || !endpointConfigured}
             >
               {busy ? (
                 <>
@@ -596,36 +590,10 @@ export function StudioPage({ onBack }: StudioPageProps) {
               {message}
             </p>
 
-            {canSimulate && !result && (
-              <div className="demo-simulate-banner">
-                <button
-                  type="button"
-                  className="button button-light simulate-btn"
-                  onClick={async () => {
-                    if (!file) return;
-                    setBusy(true);
-                    setMessage('Rendering client-side simulated demonstration…');
-                    const sim = await generateSimulatedOutput(file, Number(scale));
-                    setResult(sim);
-                    if (dimensions) {
-                      setResultDimensions({
-                        width: dimensions.width * Number(scale),
-                        height: dimensions.height * Number(scale),
-                      });
-                    }
-                    setMessage('Simulated preview rendered. Inspect or download the output.');
-                    setBusy(false);
-                  }}
-                >
-                  ⚡ Preview with Demonstration Engine
-                </button>
-              </div>
-            )}
-
             <p className="api-notice">
-              This downloadable starter includes the interface and an example API adapter, not your
-              private processing backend. Configure the endpoint and adapt the request/response
-              contract in <code>src/lib/upscaler.ts</code>.
+              {endpointConfigured
+                ? 'Your image is processed securely by the connected enhancement service. Processing is handled according to the service privacy policy.'
+                : 'Enhancement is currently unavailable on this deployment. No image from this workspace has been uploaded or changed externally.'}
             </p>
           </div>
         </div>

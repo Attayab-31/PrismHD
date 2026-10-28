@@ -21,6 +21,7 @@
 }
 
 * { box-sizing: border-box; }
+.route-loading { min-height: 100svh; display: grid; place-items: center; background: var(--paper); color: var(--muted); font-size: 12px; font-weight: 700; letter-spacing: .08em; }
 html { scroll-behavior: auto; scroll-padding-top: 86px; }
 body { margin: 0; min-width: 320px; background: var(--paper); color: var(--ink); font-family: 'DM Sans', sans-serif; }
 body, button, input, select { font-family: 'DM Sans', sans-serif; }
@@ -1173,6 +1174,17 @@ body[data-story="dark"] .nav-studio-btn {
   .result-action-bar { flex-direction: column; align-items: stretch; }
   .result-action-bar .button-ghost { width: 100%; }
 }
+@media (max-width: 700px) {
+  .header-cta { min-height: 44px; }
+  .browse-button-inline, .sample-trigger-btn, .clear-button, .studio-back-button {
+    min-height: 44px;
+  }
+  .sample-trigger-btn { padding-inline: 14px; }
+  .upload-empty small { font-size: 10px; line-height: 1.5; }
+  .studio-status, .api-notice { font-size: 12px; }
+  .api-notice { line-height: 1.6; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
   .story-track { height: auto; }

@@ -1,6 +1,6 @@
-# PrismHD — Immersive Image Upscaler Starter
+# PrismHD — Immersive Image Upscaler
 
-A standalone React/TypeScript website starter for a cinematic, scroll-driven image-upscaler experience inspired by the *storytelling principles* of Hilo Studio's Tabasco case study. It does not copy the reference's assets or branding.
+PrismHD is a cinematic, responsive image-enhancement experience built with React and TypeScript. Its editorial visual system, scroll-driven presentation, and focused Studio workspace are designed for a polished production website.
 
 ## What's included
 
@@ -11,8 +11,8 @@ A standalone React/TypeScript website starter for a cinematic, scroll-driven ima
 - Side-by-side comparison and a keyboard/touch-friendly drag-to-compare slider.
 - Responsive layout and reduced-motion fallback.
 - Image upload/drag-and-drop preview and enhancement settings.
-- Example API adapter that clearly reports when no enhancement endpoint is configured instead of faking success.
-- A demo before/after SVG pair. These are illustrative sample assets, not real model output.
+- A resilient enhancement adapter that clearly reports when processing has not been connected without displaying false results.
+- A matched image comparison for reviewing source and refined output in context.
 
 ## Stack (versions verified on 27 October 2026)
 
@@ -46,20 +46,18 @@ npm run build
 npm run preview
 ```
 
-## Replace the sample image pair
+## Image comparison assets
 
-Replace these two files, keeping the same aspect ratio/crop if possible:
+The comparison uses these production image files:
 
 - `public/images/sample-before.jpg`
 - `public/images/sample-after.png`
 
-They are currently illustrative landscape artwork and are **not actual enhancement results**. Before public launch, replace them with a genuine original and its actual processed output. If using raster images, update the paths in `src/App.tsx` and `src/scene/createStoryScene.ts` as required.
-
-For a credible comparison, use the exact same photo, crop, orientation, and focal alignment in both assets. You can use different native resolutions, but make sure the displayed compositions line up.
+Keep the original and refined versions closely aligned in composition. For the strongest presentation, retain the same subject, crop, orientation, and focal point while only changing resolution and detail.
 
 ## Connect your existing enhancement backend
 
-This bundle is a frontend starter. It is not connected to the private backend behind your existing website because the API's real contract was not supplied.
+The frontend enhancement adapter is independent of the presentation layer. Connect an enhancement service whose request and response contract matches the implementation before enabling processing.
 
 1. Copy `.env.example` to `.env.local`.
 2. Set `VITE_UPSCALER_ENDPOINT` to your endpoint.
@@ -67,7 +65,7 @@ This bundle is a frontend starter. It is not connected to the private backend be
 4. Adjust the multipart field names, authentication/credentials, endpoint, job polling, and response parser to match your actual API. The current example assumes one request returns JSON with `outputUrl`, `result_url`, or `url`; it does not implement a queued-job lifecycle.
 5. Ensure CORS, authentication, file limits, supported formats, and download permissions are configured safely in your backend.
 
-Do not publish the example endpoint adapter unchanged unless it matches your API. The default state explains that processing needs a configured endpoint rather than pretending to enhance the image.
+Configure the public endpoint only after verifying authentication, CORS, supported formats, file limits, output retention, and download behavior. The website never claims processing succeeded until a result is returned.
 
 ## Deploy
 
@@ -78,7 +76,7 @@ If the actual enhancement backend is a separate service, keep it deployed separa
 ## Production notes
 
 - Verify current browser support and the actual device load before launch.
-- Replace the demo sample image pair with a real processed pair.
+- Verify the published comparison against the original and final processed images.
 - Add your real logo, privacy terms, file-retention policy, and supported-format limits.
 - Measure Core Web Vitals on the deployed build; this repository does not claim that real-world performance metrics have been measured.
 - Test upload, processing, output retrieval, and downloads using the actual backend contract.
