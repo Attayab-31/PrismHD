@@ -165,13 +165,42 @@ body[data-story="dark"] .stage-bottom { color: rgba(245,243,238,.45); border-col
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: 23;
+  z-index: 110;
+}
+
+/* Atmospheric screen focus vignette when bee sits on user's glass */
+.bee-screen-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 105;
+  background: radial-gradient(ellipse at 50% 48%, rgba(246, 240, 229, 0) 25%, rgba(20, 24, 18, 0.44) 100%);
+  opacity: 0;
+  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Tactile glass contact ripple when bee touches the screen */
+.bee-glass-ripple {
+  position: fixed;
+  top: 48%;
+  left: 50%;
+  width: 260px;
+  height: 180px;
+  margin-left: -130px;
+  margin-top: -90px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(241, 189, 80, 0.75);
+  box-shadow: 0 0 32px rgba(241, 189, 80, 0.35), inset 0 0 24px rgba(241, 189, 80, 0.18);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 115;
+  transform: scale(0.2);
 }
 
 /* Master Bee Flight Container */
 .bee-flight-rig-wrap {
   position: fixed;
-  z-index: 25;
+  z-index: 120;
   top: 0;
   left: 0;
   pointer-events: none;
@@ -189,6 +218,27 @@ body[data-story="dark"] .stage-bottom { color: rgba(245,243,238,.45); border-col
   height: 100%;
   transform-style: preserve-3d;
   will-change: transform;
+}
+
+/* Glass surface reflection under the sitting bee */
+.bee-glass-reflection {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transform: scaleY(-0.32) translateY(85%) skewX(-6deg);
+  opacity: 0;
+  filter: blur(4px) brightness(0.65);
+  mask-image: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 80%);
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 80%);
+  z-index: -1;
+  transition: opacity 0.3s ease;
+}
+
+.bee-glass-reflection img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 /* Dynamic Cast Shadow */
@@ -214,6 +264,7 @@ body[data-story="dark"] .stage-bottom { color: rgba(245,243,238,.45); border-col
   inset: 0;
   z-index: 2;
   transform-style: preserve-3d;
+  transform: translateZ(-8px);
 }
 
 .bee-body-image {
@@ -221,7 +272,52 @@ body[data-story="dark"] .stage-bottom { color: rgba(245,243,238,.45); border-col
   height: 100%;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 2px 8px rgba(35, 25, 10, 0.12));
+  filter: drop-shadow(0 4px 16px rgba(25, 18, 6, 0.45));
+}
+
+/* Volumetric 3D Belly & Underside Lighting Layer */
+.bee-belly-3d-volume {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  transform: translateZ(-1px);
+  will-change: transform;
+}
+
+/* Warm ventral ambient highlight on the rounded belly */
+.bee-belly-glow {
+  position: absolute;
+  left: 20%;
+  top: 40%;
+  width: 48%;
+  height: 44%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 55%, rgba(255, 195, 65, 0.45) 0%, rgba(215, 130, 25, 0.2) 48%, transparent 72%);
+  mix-blend-mode: color-dodge;
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+/* Abdominal sternite segmentation shadows giving round cylindrical depth */
+.bee-sternite-shading {
+  position: absolute;
+  left: 17%;
+  top: 42%;
+  width: 36%;
+  height: 42%;
+  background: repeating-linear-gradient(
+    72deg,
+    transparent 0px,
+    transparent 14px,
+    rgba(20, 15, 5, 0.28) 15px,
+    rgba(20, 15, 5, 0.42) 18px,
+    transparent 19px
+  );
+  mask-image: radial-gradient(ellipse at 50% 50%, black 45%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 50%, black 45%, transparent 75%);
+  pointer-events: none;
+  opacity: 0.8;
 }
 
 /* Specular Sheen Sweep on Emergence */
@@ -253,17 +349,19 @@ body[data-story="dark"] .stage-bottom { color: rgba(245,243,238,.45); border-col
   display: block;
 }
 
-/* Far Wing: behind the thorax */
+/* Far Wing: deep in background behind thorax and abdomen */
 .bee-wing-far {
   z-index: 1;
-  filter: brightness(0.92) contrast(1.04);
-  opacity: 0.88;
+  filter: brightness(0.88) contrast(1.08);
+  opacity: 0.85;
+  transform: translateZ(-38px) rotateX(16deg) rotateY(-8deg);
 }
 
-/* Fore Wing: in front of the thorax */
+/* Fore Wing: folded over the back behind belly and legs */
 .bee-wing-fore {
-  z-index: 3;
-  filter: brightness(1.02) drop-shadow(0 2px 6px rgba(180, 140, 40, 0.18));
+  z-index: 2;
+  filter: brightness(1.02) drop-shadow(0 2px 8px rgba(180, 140, 40, 0.22));
+  transform: translateZ(-18px) rotateX(12deg);
 }
 
 /* Wing Flutter Motion Blur Fan */
@@ -276,6 +374,238 @@ body[data-story="dark"] .stage-bottom { color: rgba(245,243,238,.45); border-col
   transform-origin: 80% 74%;
   opacity: 0;
   mix-blend-mode: screen;
+  pointer-events: none;
+  transform: translateZ(-16px);
+}
+
+/* Direct Foot Contact Shadows Layer (zero distance at foot tips on the glass) */
+.bee-foot-contact-shadows {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  transform: translateZ(0px);
+}
+
+.foot-shadow {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(8, 6, 2, 0.96) 0%, rgba(15, 12, 5, 0.8) 50%, transparent 75%);
+  filter: blur(0.8px);
+  transform: translate(-50%, -50%);
+}
+
+.foot-occlusion-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  margin-top: -2px;
+  border-radius: 50%;
+  background: #000;
+  box-shadow: 0 0 2px #000;
+}
+
+/* Foot 1: Hind leg tip (38.5%, 99.1%) */
+.foot-shadow-1 {
+  left: 38.5%;
+  top: 99.1%;
+  width: 14px;
+  height: 7px;
+}
+
+/* Foot 2: Middle leg tip (57.9%, 86.3%) */
+.foot-shadow-2 {
+  left: 57.9%;
+  top: 86.3%;
+  width: 12px;
+  height: 6px;
+}
+
+/* Foot 3: Fore leg tip (70.2%, 74.7%) */
+.foot-shadow-3 {
+  left: 70.2%;
+  top: 74.7%;
+  width: 11px;
+  height: 6px;
+}
+
+/* Monitor Screen Glass Layer (IN FRONT of bee, creating the illusion of sitting from inside) */
+.bee-monitor-glass-overlay {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  z-index: 10;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  transform: translateZ(5px);
+}
+
+/* Specular glare bar across monitor glass */
+.glass-specular-glare {
+  position: absolute;
+  top: -25%;
+  left: -25%;
+  width: 150%;
+  height: 150%;
+  background: linear-gradient(
+    130deg,
+    rgba(255, 255, 255, 0) 36%,
+    rgba(255, 255, 255, 0.05) 44%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0.04) 56%,
+    rgba(255, 255, 255, 0) 64%
+  );
+  transform: rotate(-16deg);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+/* Container for foot contact pads on the monitor glass */
+.bee-glass-foot-pads {
+  position: absolute;
+  inset: 16.67%; /* Offset by the -20% inset on overlay */
+  pointer-events: none;
+  z-index: 12;
+  transform: translateZ(2px);
+}
+
+/* Individual foot contact pad on the glass */
+.glass-foot-pad {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  margin-left: -12px;
+  margin-top: -12px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.2);
+  transition: opacity 0.18s cubic-bezier(0.18, 0.89, 0.32, 1.28), transform 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+/* Foot 1: Hind leg */
+.foot-pad-1 {
+  left: 38.5%;
+  top: 99.1%;
+}
+
+/* Foot 2: Middle leg */
+.foot-pad-2 {
+  left: 57.9%;
+  top: 86.3%;
+}
+
+/* Foot 3: Fore leg */
+.foot-pad-3 {
+  left: 70.2%;
+  top: 74.7%;
+}
+
+/* Tarsal claw core contact point pressed directly on glass */
+.glass-foot-pad .pad-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: #110d06;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.98), 0 0 4px rgba(241, 189, 80, 0.7);
+}
+
+/* Direct glass reflection of the claw tip (distance = 0) */
+.glass-foot-pad .pad-reflection-tip {
+  position: absolute;
+  top: 56%;
+  left: 50%;
+  width: 5px;
+  height: 3px;
+  margin-left: -2.5px;
+  border-radius: 50%;
+  background: rgba(255, 235, 180, 0.45);
+  filter: blur(0.5px);
+}
+
+/* Micro adhesive friction ring where the foot pad touches the glass */
+.glass-foot-pad .pad-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+  border-radius: 50%;
+  border: 1.2px solid rgba(241, 189, 80, 0.65);
+  background: radial-gradient(circle, rgba(241, 189, 80, 0.35) 0%, rgba(255, 255, 255, 0.15) 45%, transparent 80%);
+  animation: padPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes padPulse {
+  0% { transform: scale(0.9); opacity: 0.65; }
+  100% { transform: scale(1.12); opacity: 1.0; }
+}
+
+/* Micro glass refraction glint */
+.glass-foot-pad .pad-glint {
+  position: absolute;
+  top: 25%;
+  left: 25%;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: #fffdf5;
+  box-shadow: 0 0 3px #ffffff, 0 0 6px rgba(241, 189, 80, 0.8);
+}
+
+/* Active pressed state on glass */
+.glass-foot-pad.is-pressed {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* App transition veil */
+.app-transition-veil {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--paper, #f6f0e5);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.38s ease;
+}
+
+.app-transition-veil.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Studio page entrance animation */
+.studio-page-view {
+  animation: studioEntrance 0.4s ease-out;
+}
+
+@keyframes studioEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* When transitioning, lock interactive pointer events on main landing elements */
+main.is-transitioning button,
+main.is-transitioning a {
   pointer-events: none;
 }
 
@@ -348,6 +678,420 @@ body[data-story="dark"] .stage-bottom { color: rgba(245,243,238,.45); border-col
 .site-footer > div { display: flex; align-items: center; justify-content: flex-end; gap: 20px; color: #777b81; font-size: 10px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
+/* Navigation & Footer buttons to open Studio */
+.nav-studio-btn {
+  display: flex;
+  gap: 7px;
+  align-items: baseline;
+  font-size: 12px;
+  color: #4c4b42;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color .3s ease;
+}
+body[data-story="dark"] .nav-studio-btn {
+  color: rgba(246,240,229,.76);
+}
+.nav-studio-btn:hover {
+  color: var(--honey);
+}
+.nav-studio-btn span {
+  font-size: 9px;
+  color: #989ba0;
+}
+
+.footer-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--honey);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-family: inherit;
+  transition: color .2s ease;
+}
+.footer-link-btn:hover {
+  color: var(--ink);
+}
+.footer-link-btn .icon-arrow {
+  width: 12px;
+  height: 12px;
+}
+
+/* Dedicated Studio Page View */
+.studio-page-view {
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+
+.studio-page-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  height: 76px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 max(30px, calc((100vw - 1320px) / 2));
+  border-bottom: 1px solid rgba(37,38,31,.09);
+  background: rgba(246,240,229,.94);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.wordmark-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.studio-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  background: rgba(169,99,22,.08);
+  border: 1px solid rgba(169,99,22,.22);
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--honey);
+}
+
+.studio-badge .badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--honey);
+  box-shadow: 0 0 0 3px rgba(169,99,22,.2);
+  animation: cuePulse 1.8s infinite ease-in-out;
+}
+
+.studio-back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 39px;
+  padding: 0 16px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  transition: background .25s ease, color .25s ease, transform .2s ease;
+}
+
+.studio-back-button:hover {
+  background: var(--ink);
+  color: var(--paper);
+  transform: translateX(-2px);
+}
+
+.studio-page-main {
+  flex: 1 0 auto;
+  padding-top: 50px;
+  padding-bottom: 90px;
+}
+
+.studio-status-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--honey);
+}
+
+.upload-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.browse-button-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  transition: transform .2s ease, background .2s ease;
+}
+
+.browse-button-inline:hover {
+  background: var(--forest);
+  transform: translateY(-2px);
+}
+
+.sample-trigger-btn {
+  background: transparent;
+  border: 1px dashed rgba(169,99,22,.4);
+  border-radius: 2px;
+  color: var(--honey);
+  padding: 6px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.sample-trigger-btn:hover {
+  background: rgba(169,99,22,.08);
+  border-color: var(--honey);
+}
+
+.preview-active-wrap {
+  margin-top: 16px;
+}
+
+.preview-image-box {
+  position: relative;
+  aspect-ratio: 1.55;
+  background: #eee6d8;
+  overflow: hidden;
+  border: 1px solid #d4c8b2;
+}
+
+.preview-box-actions {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 5;
+}
+
+.clear-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 14px;
+  border: 1px solid rgba(37,38,31,.25);
+  background: rgba(246,240,229,.9);
+  color: #68675d;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 600;
+  backdrop-filter: blur(8px);
+  transition: all .2s ease;
+}
+
+.clear-button:hover {
+  background: #ded5c2;
+  color: var(--ink);
+}
+
+.file-info-panel {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #f1ebd8;
+  border: 1px solid rgba(37,38,31,.08);
+}
+
+.file-info-panel .file-row {
+  padding: 0;
+  font-weight: 600;
+}
+
+.file-info-panel .spec-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(37,38,31,.08);
+}
+
+.spec-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  background: rgba(37,38,31,.06);
+  color: #55575b;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+.target-badge {
+  background: rgba(169,99,22,.12);
+  color: var(--honey);
+  font-weight: 700;
+}
+
+/* Studio Result View */
+.studio-result-module {
+  margin-top: 16px;
+}
+
+.studio-result-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.result-indicator {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--ink);
+}
+
+.result-indicator .status-dot.active {
+  background: #2a8b3f;
+  box-shadow: 0 0 0 3px rgba(42,139,63,.2);
+}
+
+.resolution-chip {
+  font-size: 9px;
+  padding: 2px 7px;
+  background: var(--honey);
+  color: white;
+  border-radius: 2px;
+  font-weight: 700;
+}
+
+.studio-wipe {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+}
+
+.studio-compare-grid {
+  margin-top: 12px;
+}
+
+.studio-single-result {
+  position: relative;
+  aspect-ratio: 1.6;
+  background: #eee6d8;
+  overflow: hidden;
+  margin-top: 12px;
+  border: 1px solid var(--line);
+}
+
+.studio-single-result img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.result-action-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.download-btn {
+  flex: 1 1 200px;
+}
+
+.button-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 49px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  transition: all .2s ease;
+}
+
+.button-ghost:hover {
+  background: rgba(37,38,31,.06);
+  border-color: var(--ink);
+}
+
+.button-spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.demo-simulate-banner {
+  margin-top: 16px;
+  padding: 12px;
+  background: #fdf5e2;
+  border: 1px dashed var(--honey);
+}
+
+.simulate-btn {
+  width: 100%;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--forest);
+  border-color: var(--honey);
+}
+
+.studio-page-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  padding: 24px max(30px, calc((100vw - 1320px) / 2));
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.footer-specs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: #7f8185;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 10px;
+  color: #777b81;
+}
+
 @media (min-width: 1500px) {
   .chapter-copy h1 { font-size: clamp(88px, 6.3vw, 108px); }
   .hero-description { font-size: 16px; }
@@ -417,6 +1161,17 @@ body[data-story="dark"] .stage-bottom { color: rgba(245,243,238,.45); border-col
   .site-footer { grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px 18px; }
   .site-footer > p { display: none; }
   .site-footer > div { gap: 14px; font-size: 9px; }
+  .studio-page-header {
+    height: calc(64px + env(safe-area-inset-top));
+    padding: env(safe-area-inset-top) calc(18px + env(safe-area-inset-right)) 0 calc(18px + env(safe-area-inset-left));
+  }
+  .studio-badge { display: none; }
+  .studio-back-button { min-height: 35px; padding-inline: 10px; font-size: 10px; }
+  .studio-page-main { padding-top: 30px; padding-bottom: 50px; }
+  .studio-page-footer { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .studio-result-toolbar { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .result-action-bar { flex-direction: column; align-items: stretch; }
+  .result-action-bar .button-ghost { width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
